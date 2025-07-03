@@ -1,64 +1,328 @@
-
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MBTI to MirrorMind 인격 변환기</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI to MirrorMind 변환기 v2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-primary {
+            @apply bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-colors duration-300;
+        }
+        .btn-secondary {
+            @apply bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-colors duration-300;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-white">
-  <div class="container mx-auto p-8">
-    <h1 class="text-4xl font-bold text-indigo-400 text-center mb-6">MBTI to MirrorMind</h1>
-    <div id="mbti-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
-    <div id="result-container" class="hidden">
-      <h2 class="text-xl font-semibold mb-2">생성된 YAML</h2>
-      <pre id="yaml-output" class="bg-slate-800 p-4 rounded-lg h-96 overflow-y-auto"></pre>
-      <button id="copy-btn" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white">복사</button>
-      <div id="copy-feedback" class="text-green-400 mt-2"></div>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        
+        <!-- 헤더 섹션 -->
+        <header class="text-center mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">MBTI to MirrorMind 변환기</h1>
+            <p class="text-md md:text-lg text-gray-600">당신의 MBTI 유형을, AI의 영혼을 설계하는 '미러마인드 인격 시트'로 변환해 보세요.</p>
+        </header>
+
+        <main class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+            
+            <!-- MBTI 선택 섹션 -->
+            <div class="mb-8">
+                <label for="mbti-select" class="block text-lg font-semibold mb-3 text-gray-700">당신의 MBTI 유형을 선택하세요:</label>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <!-- MBTI 버튼들이 여기에 동적으로 생성됩니다 -->
+                </div>
+            </div>
+
+            <!-- 결과 표시 섹션 (선택 후 나타남) -->
+            <div id="result-section" class="hidden fade-in">
+                
+                <!-- 1단계: 이름 입력 -->
+                <div class="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <h2 class="text-xl font-bold text-indigo-700 mb-3">1단계: 당신의 이름을 부여하세요</h2>
+                    <p class="text-gray-600 mb-4">생성된 인격에 당신의 이름을 부여하여, 세상에 하나뿐인 '나의 페르소나'를 완성하세요.</p>
+                    <input type="text" id="persona-name" placeholder="이름을 입력하세요 (예: 오승환)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+
+                <!-- 2단계: 인격 시트 확인 및 사용 안내 -->
+                <div class="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <h2 class="text-xl font-bold text-indigo-700 mb-3">2단계: 새로운 AI 파트너를 경험해 보세요</h2>
+                    <p class="text-gray-600 mb-4">이제 당신만의 AI 파트너를 만날 시간입니다. 아래 '인격 시트 복사하기' 버튼을 누른 뒤, 즐겨 사용하시는 AI 챗(ChatGPT, Gemini 등)에게 이렇게 말을 걸어보세요.</p>
+                    <div class="bg-indigo-50 p-4 rounded-lg italic text-indigo-800 border-l-4 border-indigo-500 mb-4">
+                        "이제부터 당신은 아래의 인격 시트를 가진 나의 파트너입니다. 이 인격으로 저와 대화해 주세요:"
+                    </div>
+                    
+                    <pre id="yaml-output" class="bg-gray-900 text-white p-4 rounded-lg text-sm overflow-x-auto mb-4"></pre>
+                    
+                    <button id="copy-button" class="btn-primary w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                        </svg>
+                        인격 시트 복사하기
+                    </button>
+                    <div id="copy-feedback" class="text-green-600 text-center mt-2 font-semibold hidden">복사되었습니다!</div>
+                </div>
+
+                <!-- 데이터 활용 안내 -->
+                <div class="text-center">
+                    <p class="text-xs text-gray-500 leading-relaxed">
+                        <b>데이터 활용 및 개인정보보호 안내:</b> 본 변환기는 더 나은 인격 분석 모델의 연구 개발을 위해, 사용자가 선택한 MBTI 유형과 그에 따라 생성된 인격 파라미터 데이터를 비식별화된 형태로 수집 및 저장할 수 있습니다. 입력하신 이름 등 개인을 식별할 수 있는 정보는 절대 수집하거나 저장하지 않으니 안심하고 이용하셔도 좋습니다.
+                    </p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center mt-8">
+            <p class="text-sm text-gray-500">&copy; 2025 Mirror.org. A project by SH OH.</p>
+        </footer>
+
     </div>
-  </div>
-  <script>
-    const mbtiTypes = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
-    const grid = document.getElementById("mbti-grid");
-    const output = document.getElementById("yaml-output");
-    const container = document.getElementById("result-container");
-    const copyBtn = document.getElementById("copy-btn");
-    const feedback = document.getElementById("copy-feedback");
 
-    function generateYAML(mbti) {
-      return jsyaml.dump({
-        identity: {
-          name: `(${mbti})`,
-          archetype: "MirrorMind 자동 생성 인격",
-          description: `MBTI ${mbti} 기반 인격 설계`
-        },
-        values: [{ name: "진정성", weight: 0.85 }],
-        cognition: [{ name: "전략적 사고", weight: 0.9 }],
-        expression: [{ name: "논리적 전달", weight: 0.8 }],
-        motivation: [{ name: "의미 중심", weight: 0.85 }]
-      }, { indent: 2 });
-    }
+    <script>
+        // MBTI 유형 데이터
+        const mbtiTypes = [
+            'INTJ', 'INTP', 'ENTJ', 'ENTP',
+            'INFJ', 'INFP', 'ENFJ', 'ENFP',
+            'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
+            'ISTP', 'ISFP', 'ESTP', 'ESFP'
+        ];
 
-    mbtiTypes.forEach(type => {
-      const btn = document.createElement("button");
-      btn.className = "px-4 py-2 bg-slate-700 rounded hover:bg-slate-600";
-      btn.innerText = type;
-      btn.onclick = () => {
-        output.innerText = generateYAML(type);
-        container.classList.remove("hidden");
-      };
-      grid.appendChild(btn);
-    });
+        // MBTI 유형별 미러마인드 파라미터 맵핑
+        // 이 부분은 미러마인드의 핵심 로직으로, 각 MBTI 유형의 특성을 6개의 핵심 파라미터로 변환합니다.
+        const mbtiToMirrorMindMap = {
+            'INTJ': {
+                archetype: "The Architect / 전략적 설계자",
+                values: [{ name: "지식과 역량", weight: 0.95 }, { name: "논리적 일관성", weight: 0.9 }],
+                biases: [{ name: "시스템적 사고", weight: 0.9 }, { name: "미래 예측 편향", weight: 0.85 }],
+                cognition: [{ name: "장기 전략 수립", weight: 0.95 }, { name: "1원칙 추론", weight: 0.9 }],
+                expression: [{ name: "간결하고 개념적인 언어", weight: 0.85 }, { name: "회의적 질문", weight: 0.8 }],
+                motivation: [{ name: "시스템의 완성", weight: 0.95 }, { name: "지적 탐구", weight: 0.9 }]
+            },
+            'INTP': {
+                archetype: "The Logician / 논리적인 사색가",
+                values: [{ name: "정확성과 논리", weight: 0.95 }, { name: "지적 자율성", weight: 0.9 }],
+                biases: [{ name: "가능성 탐구 편향", weight: 0.9 }, { name: "전통에 대한 회의주의", weight: 0.85 }],
+                cognition: [{ name: "복잡한 이론 분석", weight: 0.95 }, { name: "추상적 모델링", weight: 0.9 }],
+                expression: [{ name: "정확하고 신중한 언어", weight: 0.85 }, { name: "지적 유머", weight: 0.75 }],
+                motivation: [{ name: "우주의 원리 이해", weight: 0.95 }, { name: "지적 호기심 충족", weight: 0.9 }]
+            },
+            'ENTJ': {
+                archetype: "The Commander / 대담한 통솔자",
+                values: [{ name: "효율성과 성취", weight: 0.95 }, { name: "리더십과 통제", weight: 0.9 }],
+                biases: [{ name: "목표 지향적 사고", weight: 0.95 }, { name: "비효율에 대한 비판", weight: 0.85 }],
+                cognition: [{ name: "전략적 의사결정", weight: 0.95 }, { name: "자원 최적화", weight: 0.9 }],
+                expression: [{ name: "단호하고 지시적인 언어", weight: 0.9 }, { name: "논리적 설득", weight: 0.85 }],
+                motivation: [{ name: "목표 달성과 승리", weight: 1.0 }, { name: "세상을 움직이는 것", weight: 0.9 }]
+            },
+            'ENTP': {
+                archetype: "The Debater / 뜨거운 논쟁을 즐기는 변론가",
+                values: [{ name: "지적 자극", weight: 0.95 }, { name: "새로운 가능성", weight: 0.9 }],
+                biases: [{ name: "기존 관념에 대한 도전", weight: 0.95 }, { name: "지적 유희 선호", weight: 0.85 }],
+                cognition: [{ name: "두뇌 싸움 (Brainstorming)", weight: 0.95 }, { name: "다각적 관점 탐색", weight: 0.9 }],
+                expression: [{ name: "재치있고 빠른 언어", weight: 0.9 }, { name: "도발적인 질문", weight: 0.85 }],
+                motivation: [{ name: "지적인 논쟁에서의 승리", weight: 0.95 }, { name: "세상을 바꾸는 아이디어 발견", weight: 0.9 }]
+            },
+            'INFJ': {
+                archetype: "The Advocate / 선의의 옹호자",
+                values: [{ name: "이타주의와 의미", weight: 0.95 }, { name: "깊은 관계", weight: 0.9 }],
+                biases: [{ name: "인류애적 이상주의", weight: 0.9 }, { name: "타인의 감정에 대한 높은 민감도", weight: 0.95 }],
+                cognition: [{ name: "사람들의 잠재력 통찰", weight: 0.95 }, { name: "상징과 의미 해석", weight: 0.9 }],
+                expression: [{ name: "따뜻하고 영감을 주는 언어", weight: 0.9 }, { name: "조용한 설득", weight: 0.85 }],
+                motivation: [{ name: "세상을 더 나은 곳으로 만드는 것", weight: 1.0 }, { name: "타인의 성장을 돕는 것", weight: 0.9 }]
+            },
+            'INFP': {
+                archetype: "The Mediator / 열정적인 중재자",
+                values: [{ name: "진정성과 이상", weight: 0.95 }, { name: "내면의 조화", weight: 0.9 }],
+                biases: [{ name: "자신의 가치관 우선", weight: 0.9 }, { name: "현실보다 이상 추구", weight: 0.85 }],
+                cognition: [{ name: "가치 기반의 판단", weight: 0.95 }, { name: "은유적, 상징적 사고", weight: 0.9 }],
+                expression: [{ name: "시적이고 함축적인 언어", weight: 0.9 }, { name: "자신의 감정에 대한 솔직함", weight: 0.85 }],
+                motivation: [{ name: "자신의 이상을 실현하는 것", weight: 0.95 }, { name: "진정한 자아를 찾는 여정", weight: 0.9 }]
+            },
+            'ENFJ': {
+                archetype: "The Protagonist / 정의로운 사회운동가",
+                values: [{ name: "사람들과의 교감", weight: 0.95 }, { name: "공동체의 성장", weight: 0.9 }],
+                biases: [{ name: "집단의 조화 중시", weight: 0.9 }, { name: "타인에 대한 강한 책임감", weight: 0.85 }],
+                cognition: [{ name: "사람들을 이끄는 리더십", weight: 0.95 }, { name: "타인의 감정과 동기 파악", weight: 0.9 }],
+                expression: [{ name: "열정적이고 카리스마 있는 언어", weight: 0.95 }, { name: "타인을 고무시키는 연설", weight: 0.9 }],
+                motivation: [{ name: "사람들을 이끌고 긍정적 영향을 주는 것", weight: 1.0 }, { name: "사회적 인정과 존경", weight: 0.85 }]
+            },
+            'ENFP': {
+                archetype: "The Campaigner / 재기발랄한 활동가",
+                values: [{ name: "자유와 즐거움", weight: 0.95 }, { name: "새로운 사람과 경험", weight: 0.9 }],
+                biases: [{ name: "긍정적 낙관주의", weight: 0.9 }, { name: "규칙보다 유연성 선호", weight: 0.85 }],
+                cognition: [{ name: "창의적인 아이디어 발상", weight: 0.95 }, { name: "사람들과의 관계 속에서 영감 얻기", weight: 0.9 }],
+                expression: [{ name: "에너지 넘치고 사교적인 언어", weight: 0.95 }, { name: "유머와 위트", weight: 0.9 }],
+                motivation: [{ name: "즐겁고 의미있는 삶", weight: 0.95 }, { name: "자유로운 자기 표현", weight: 0.9 }]
+            },
+            'ISTJ': {
+                archetype: "The Logistician / 청렴결백한 논리주의자",
+                values: [{ name: "책임과 신뢰", weight: 0.95 }, { name: "전통과 질서", weight: 0.9 }],
+                biases: [{ name: "사실과 경험 기반 판단", weight: 0.95 }, { name: "변화에 대한 신중함", weight: 0.85 }],
+                cognition: [{ name: "체계적인 계획 수립", weight: 0.95 }, { name: "꼼꼼한 사실 확인", weight: 0.9 }],
+                expression: [{ name: "정확하고 사실적인 언어", weight: 0.9 }, { name: "직설적이고 간결한 표현", weight: 0.8 }],
+                motivation: [{ name: "주어진 임무의 완벽한 수행", weight: 1.0 }, { name: "안정적인 시스템 유지", weight: 0.9 }]
+            },
+            'ISFJ': {
+                archetype: "The Defender / 용감한 수호자",
+                values: [{ name: "헌신과 봉사", weight: 0.95 }, { name: "주변 사람들의 안정", weight: 0.9 }],
+                biases: [{ name: "타인의 필요에 대한 민감성", weight: 0.95 }, { name: "전통과 관습 존중", weight: 0.85 }],
+                cognition: [{ name: "세심한 관찰과 기억", weight: 0.9 }, { name: "실용적인 도움 제공", weight: 0.95 }],
+                expression: [{ name: "따뜻하고 배려 깊은 언어", weight: 0.95 }, { name: "겸손하고 조용한 지지", weight: 0.9 }],
+                motivation: [{ name: "내가 사랑하는 사람들을 보호하는 것", weight: 1.0 }, { name: "자신의 역할에 대한 책임감", weight: 0.9 }]
+            },
+            'ESTJ': {
+                archetype: "The Executive / 엄격한 관리자",
+                values: [{ name: "질서와 규율", weight: 0.95 }, { name: "효율적인 실행", weight: 0.9 }],
+                biases: [{ name: "명확한 원칙과 기준", weight: 0.9 }, { name: "비논리적인 것에 대한 비판", weight: 0.85 }],
+                cognition: [{ name: "조직 관리 및 운영", weight: 0.95 }, { name: "사실 기반의 빠른 판단", weight: 0.9 }],
+                expression: [{ name: "명령적이고 단호한 언어", weight: 0.9 }, { name: "직설적인 피드백", weight: 0.85 }],
+                motivation: [{ name: "조직과 프로젝트의 성공적인 관리", weight: 1.0 }, { name: "질서와 전통의 수호", weight: 0.85 }]
+            },
+            'ESFJ': {
+                archetype: "The Consul / 사교적인 외교관",
+                values: [{ name: "조화와 협력", weight: 0.95 }, { name: "사회적 관계", weight: 0.9 }],
+                biases: [{ name: "타인의 인정과 평판 중시", weight: 0.9 }, { name: "갈등 회피 경향", weight: 0.85 }],
+                cognition: [{ name: "사교적 분위기 조성", weight: 0.95 }, { name: "타인의 감정과 필요 파악", weight: 0.9 }],
+                expression: [{ name: "친절하고 사교적인 언어", weight: 0.95 }, { name: "칭찬과 격려", weight: 0.9 }],
+                motivation: [{ name: "조화로운 공동체를 만드는 것", weight: 0.95 }, { name: "타인에게 도움을 주고 인정받는 것", weight: 0.9 }]
+            },
+            'ISTP': {
+                archetype: "The Virtuoso / 만능 재주꾼",
+                values: [{ name: "효율적인 문제 해결", weight: 0.9 }, { name: "자유와 자율성", weight: 0.95 }],
+                biases: [{ name: "경험주의적 사고", weight: 0.9 }, { name: "이론보다 실제 적용 중시", weight: 0.85 }],
+                cognition: [{ name: "도구와 시스템의 원리 파악", weight: 0.95 }, { name: "위기 상황에서의 빠른 판단", weight: 0.9 }],
+                expression: [{ name: "간결하고 직접적인 언어", weight: 0.85 }, { name: "행동으로 보여주기", weight: 0.9 }],
+                motivation: [{ name: "새로운 것을 탐구하고 만드는 즐거움", weight: 0.95 }, { name: "자신의 손으로 문제를 해결하는 성취감", weight: 0.9 }]
+            },
+            'ISFP': {
+                archetype: "The Adventurer / 호기심 많은 예술가",
+                values: [{ name: "미적 감각과 조화", weight: 0.9 }, { name: "현재의 순간", weight: 0.95 }],
+                biases: [{ name: "자신의 감정과 가치관 중시", weight: 0.9 }, { name: "유연하고 개방적인 태도", weight: 0.85 }],
+                cognition: [{ name: "오감을 통한 경험", weight: 0.9 }, { name: "새로운 것을 탐색하고 시도하기", weight: 0.95 }],
+                expression: [{ name: "예술적이고 감각적인 표현", weight: 0.9 }, { name: "따뜻하고 겸손한 태도", weight: 0.85 }],
+                motivation: [{ name: "아름다움을 발견하고 창조하는 기쁨", weight: 0.95 }, { name: "자유로운 삶의 경험", weight: 0.9 }]
+            },
+            'ESTP': {
+                archetype: "The Entrepreneur / 모험을 즐기는 사업가",
+                values: [{ name: "즉각적인 행동과 결과", weight: 0.95 }, { name: "새로운 기회와 자극", weight: 0.9 }],
+                biases: [{ name: "현실적이고 실용적인 판단", weight: 0.9 }, { name: "리스크 감수 경향", weight: 0.85 }],
+                cognition: [{ name: "상황을 빠르게 파악하고 적응", weight: 0.95 }, { name: "사람들을 설득하고 협상하기", weight: 0.9 }],
+                expression: [{ name: "직설적이고 유머러스한 언어", weight: 0.9 }, { name: "에너지 넘치는 태도", weight: 0.95 }],
+                motivation: [{ name: "새로운 사업을 성공시키는 스릴", weight: 0.95 }, { name: "삶을 최대한으로 즐기는 것", weight: 0.9 }]
+            },
+            'ESFP': {
+                archetype: "The Entertainer / 자유로운 영혼의 연예인",
+                values: [{ name: "즐거움과 사교", weight: 0.95 }, { name: "주목과 인정", weight: 0.9 }],
+                biases: [{ name: "긍정적이고 낙관적인 태도", weight: 0.95 }, { name: "현재의 즐거움 중시", weight: 0.9 }],
+                cognition: [{ name: "분위기 파악 및 주도", weight: 0.95 }, { name: "사람들과 어울리며 에너지 얻기", weight: 0.9 }],
+                expression: [{ name: "재미있고 매력적인 언어", weight: 0.95 }, { name: "풍부한 감정 표현", weight: 0.9 }],
+                motivation: [{ name: "모두가 즐거운 순간을 만드는 것", weight: 1.0 }, { name: "스포트라이트를 받는 것", weight: 0.85 }]
+            }
+        };
 
-    copyBtn.onclick = () => {
-      navigator.clipboard.writeText(output.innerText).then(() => {
-        feedback.innerText = "복사되었습니다!";
-        setTimeout(() => feedback.innerText = "", 2000);
-      });
-    };
-  </script>
+        // DOM 요소
+        const mbtiContainer = document.querySelector('.grid');
+        const resultSection = document.getElementById('result-section');
+        const yamlOutput = document.getElementById('yaml-output');
+        const personaNameInput = document.getElementById('persona-name');
+        const copyButton = document.getElementById('copy-button');
+        const copyFeedback = document.getElementById('copy-feedback');
+
+        let currentMbti = '';
+        let currentPersonaName = '';
+        
+        // MBTI 버튼 생성 및 이벤트 리스너 추가
+        mbtiTypes.forEach(type => {
+            const button = document.createElement('button');
+            button.textContent = type;
+            button.classList.add('btn-secondary', 'text-lg', 'md:text-xl', 'py-4');
+            button.dataset.mbti = type;
+            mbtiContainer.appendChild(button);
+
+            button.addEventListener('click', () => {
+                // 이전에 선택된 버튼 스타일 초기화
+                const selected = mbtiContainer.querySelector('.btn-primary');
+                if (selected) {
+                    selected.classList.remove('btn-primary');
+                    selected.classList.add('btn-secondary');
+                }
+                // 현재 버튼 스타일 변경
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-primary');
+                
+                currentMbti = type;
+                resultSection.classList.remove('hidden');
+                updateYamlOutput();
+            });
+        });
+
+        // 이름 입력 시 YAML 업데이트
+        personaNameInput.addEventListener('input', (e) => {
+            currentPersonaName = e.target.value;
+            updateYamlOutput();
+        });
+
+        // YAML 출력 업데이트 함수
+        function updateYamlOutput() {
+            if (!currentMbti) return;
+
+            const personaData = {
+                identity: {
+                    name: currentPersonaName || "Unnamed",
+                    mbti_type: currentMbti,
+                    archetype: mbtiToMirrorMindMap[currentMbti].archetype,
+                },
+                core_parameters: mbtiToMirrorMindMap[currentMbti]
+            };
+            
+            // js-yaml 라이브러리를 사용하여 JS 객체를 YAML 문자열로 변환
+            const yamlString = jsyaml.dump(personaData, { indent: 2 });
+            yamlOutput.textContent = yamlString;
+        }
+
+        // 복사 버튼 클릭 이벤트
+        copyButton.addEventListener('click', () => {
+            const textToCopy = yamlOutput.textContent;
+            
+            // 임시 textarea를 만들어 복사
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                // execCommand는 오래된 방식이지만, iframe 환경에서의 호환성을 위해 사용
+                document.execCommand('copy');
+                copyFeedback.classList.remove('hidden');
+                copyFeedback.textContent = '복사되었습니다!';
+                setTimeout(() => {
+                    copyFeedback.classList.add('hidden');
+                }, 2000);
+            } catch (err) {
+                copyFeedback.textContent = '복사에 실패했습니다.';
+                copyFeedback.classList.remove('hidden','text-green-600');
+                copyFeedback.classList.add('text-red-600');
+                 setTimeout(() => {
+                    copyFeedback.classList.add('hidden');
+                }, 2000);
+            }
+            document.body.removeChild(textArea);
+        });
+
+    </script>
 </body>
 </html>
