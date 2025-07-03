@@ -1,0 +1,64 @@
+
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MBTI to MirrorMind 인격 변환기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+</head>
+<body class="bg-slate-900 text-white">
+  <div class="container mx-auto p-8">
+    <h1 class="text-4xl font-bold text-indigo-400 text-center mb-6">MBTI to MirrorMind</h1>
+    <div id="mbti-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
+    <div id="result-container" class="hidden">
+      <h2 class="text-xl font-semibold mb-2">생성된 YAML</h2>
+      <pre id="yaml-output" class="bg-slate-800 p-4 rounded-lg h-96 overflow-y-auto"></pre>
+      <button id="copy-btn" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white">복사</button>
+      <div id="copy-feedback" class="text-green-400 mt-2"></div>
+    </div>
+  </div>
+  <script>
+    const mbtiTypes = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
+    const grid = document.getElementById("mbti-grid");
+    const output = document.getElementById("yaml-output");
+    const container = document.getElementById("result-container");
+    const copyBtn = document.getElementById("copy-btn");
+    const feedback = document.getElementById("copy-feedback");
+
+    function generateYAML(mbti) {
+      return jsyaml.dump({
+        identity: {
+          name: `(${mbti})`,
+          archetype: "MirrorMind 자동 생성 인격",
+          description: `MBTI ${mbti} 기반 인격 설계`
+        },
+        values: [{ name: "진정성", weight: 0.85 }],
+        cognition: [{ name: "전략적 사고", weight: 0.9 }],
+        expression: [{ name: "논리적 전달", weight: 0.8 }],
+        motivation: [{ name: "의미 중심", weight: 0.85 }]
+      }, { indent: 2 });
+    }
+
+    mbtiTypes.forEach(type => {
+      const btn = document.createElement("button");
+      btn.className = "px-4 py-2 bg-slate-700 rounded hover:bg-slate-600";
+      btn.innerText = type;
+      btn.onclick = () => {
+        output.innerText = generateYAML(type);
+        container.classList.remove("hidden");
+      };
+      grid.appendChild(btn);
+    });
+
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(output.innerText).then(() => {
+        feedback.innerText = "복사되었습니다!";
+        setTimeout(() => feedback.innerText = "", 2000);
+      });
+    };
+  </script>
+</body>
+</html>
